@@ -1,0 +1,21 @@
+Thread 139646827280896: Sum of first 1 integers is 1
+Thread 139646818888192: Factorial of 1 is 1
+Thread 139646827280896: Sum of first 2 integers is 3
+Thread 139646818888192: Factorial of 2 is 2
+Thread 139646827280896: Sum of first 3 integers is 6
+Thread 139646818888192: Factorial of 3 is 6
+Thread 139646827280896: Sum of first 4 integers is 10
+Thread 139646818888192: Factorial of 4 is 24
+Thread 139646827280896: Sum of first 5 integers is 15
+Thread 139646818888192: Factorial of 5 is 120
+Thread 139646827280896: Sum of first 6 integers is 21
+Thread 139646818888192: Factorial of 6 is 720
+Thread 139646827280896: Sum of first 7 integers is 28
+Thread 139646818888192: Factorial of 7 is 5040
+Thread 139646827280896: Sum of first 8 integers is 36
+Thread 139646818888192: Factorial of 8 is 40320
+Thread 139646827280896: Sum of first 9 integers is 45
+Thread 139646818888192: Factorial of 9 is 362880
+Thread 139646827280896: Sum of first 10 integers is 55
+Thread 139646818888192: Factorial of 10 is 3628800
+Both threads have finished execution.
