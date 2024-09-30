@@ -1,0 +1,41 @@
+#include <stdio.h>  
+#include <stdlib.h>  
+#include <pthread.h>  
+#include <unistd.h>  
+
+#define NUM_ITERATIONS 10
+
+// Global shared variable  
+int counter = 10;  
+
+// Function for Thread 1  
+void* thread1Code(void* arg) {  
+    for (int i = 0; i < NUM_ITERATIONS; i++) {  
+        counter++; // Increment counter  
+    }  
+    return NULL;  
+}  
+
+// Function for Thread 2  
+void* thread2Code(void* arg) {  
+    for (int i = 0; i < NUM_ITERATIONS; i++) {  
+        counter--; // Decrement counter  
+    }  
+    return NULL;  
+}  
+
+int main() {  
+    pthread_t thread1, thread2;  
+
+    // Create Thread 1 and Thread 2  
+    pthread_create(&thread1, NULL, thread1Code, NULL);  
+    pthread_create(&thread2, NULL, thread2Code, NULL);  
+
+    // Wait for both threads to finish  
+    pthread_join(thread1, NULL);  
+    pthread_join(thread2, NULL);  
+
+    // Print the final value of counter  
+    printf("Final value of counter: %d\n", counter);  
+    return 0;  
+}
