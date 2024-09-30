@@ -1,0 +1,45 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <unistd.h>
+
+int counter = 3; // initialize global variable counter
+
+void* thread1code(void* arg) {
+    int temp1 = 0;
+
+    usleep(1000000); // 1 second delay
+    temp1 = counter; // Read counter
+    usleep(2000000); // 2 seconds delay
+    temp1++; // Increment
+    usleep(2000000); // 2 seconds delay
+    counter = temp1; // Write back to counter
+    printf("T1: counter = %d\n", counter);
+    return NULL;
+}
+
+void* thread2code(void* arg) {
+    int temp2 = 0;
+
+    usleep(0); // No delay initially, change to 2000000 for second test
+    temp2 = counter; // Read counter
+    usleep(2000000); // 2 seconds delay
+    temp2--; // Decrement
+    usleep(2000000); // 2 seconds delay
+    counter = temp2; // Write back to counter
+    printf("T2: counter = %d\n", counter);
+    return NULL;
+}
+
+int main() {
+    pthread_t T1, T2;
+
+    pthread_create(&T1, NULL, thread1code, NULL);
+    pthread_create(&T2, NULL, thread2code, NULL);
+
+    pthread_join(T1, NULL); // Wait for T1 to finish
+    pthread_join(T2, NULL); // Wait for T2 to finish
+
+    printf("Final counter value: %d\n", counter);
+    return 0;
+}
