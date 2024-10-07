@@ -1,0 +1,81 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+
+sem_t Q; // Semaphore for thread 1
+sem_t S; // Semaphore for thread 2
+
+int R1 = 0; // Global variable
+int R2 = 0; // Global variable
+
+void* thread1_func(void* arg) {
+    // Thread 1 attempts to acquire semaphore Q first
+    sem_wait(&Q);
+    printf("Thread 1 acquired Q\n");
+
+    // Simulate some work with sleep
+    sleep(1);
+
+    // Thread 1 attempts to acquire semaphore S
+    printf("Thread 1 waiting for S\n");
+    sem_wait(&S);  // This may cause deadlock
+    printf("Thread 1 acquired S\n");
+
+    // Modify shared resources
+    R1++;
+    R2--;
+
+    // Release semaphores
+    sem_post(&S);
+    sem_post(&Q);
+
+    return NULL;
+}
+
+void* thread2_func(void* arg) {
+    // Thread 2 attempts to acquire semaphore S first
+    sem_wait(&S);
+    printf("Thread 2 acquired S\n");
+
+    // Simulate some work with sleep
+    sleep(1);
+
+    // Thread 2 attempts to acquire semaphore Q
+    printf("Thread 2 waiting for Q\n");
+    sem_wait(&Q);  // This may cause deadlock
+    printf("Thread 2 acquired Q\n");
+
+    // Modify shared resources
+    R1--;
+    R2++;
+
+    // Release semaphores
+    sem_post(&Q);
+    sem_post(&S);
+
+    return NULL;
+}
+
+int main() {
+    pthread_t thread1, thread2;
+
+    // Initialize the semaphores to 1
+    sem_init(&Q, 0, 1);
+    sem_init(&S, 0, 1);
+
+    // Create the threads
+    pthread_create(&thread1, NULL, thread1_func, NULL);
+    pthread_create(&thread2, NULL, thread2_func, NULL);
+
+    // Wait for both threads to complete
+    pthread_join(thread1, NULL);
+    pthread_join(thread2, NULL);
+
+    // Destroy the semaphores
+    sem_destroy(&Q);
+    sem_destroy(&S);
+
+    return 0;
+}
