@@ -1,0 +1,51 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+
+sem_t semaphore;
+
+void* thread1_func(void* arg) {
+    // Sleep to ensure thread T1 starts later than T2
+    sleep(1);
+
+    // Code C1
+    printf("hello I'm thread T1\n");
+    
+    // Signal that T1 has completed its work
+    sem_post(&semaphore);
+    
+    return NULL;
+}
+
+void* thread2_func(void* arg) {
+    // Wait for the semaphore to be posted by thread T1
+    sem_wait(&semaphore);
+    
+    // Code C2
+    printf("hello I'm thread T2\n");
+
+    return NULL;
+}
+
+int main() {
+    pthread_t thread1, thread2;
+
+    // Initialize the semaphore to 0
+    sem_init(&semaphore, 0, 0);
+
+    // Create the threads
+    pthread_create(&thread1, NULL, thread1_func, NULL);
+    pthread_create(&thread2, NULL, thread2_func, NULL);
+
+    // Wait for both threads to complete
+    pthread_join(thread1, NULL);
+    pthread_join(thread2, NULL);
+
+    // Destroy the semaphore
+    sem_destroy(&semaphore);
+
+    return 0;
+}
+
