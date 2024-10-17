@@ -1,0 +1,86 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+
+#define R0 1    // Delay before first reader starts
+#define R1 1    // Delay between subsequent reads
+#define W0 0    // Delay before writer starts
+#define W1 1    // Delay between writes
+#define ENOUGHREADS 10 // Total reads before exiting
+
+sem_t wrt;         // Writer semaphore
+sem_t mutex;       // Mutex for readcount
+int readcount = 0; // Number of readers
+int numwrites = 0; // Total number of writes
+int numreads = 0;  // Total number of reads
+
+void* writercode(void* threadid) {
+    long tid = (long)threadid;
+    usleep(W0 * 1000000); // Delay writer by W0 seconds
+    while (1) {
+        usleep(W1 * 1000000); // Delay writer by W1 seconds
+        printf("Thread %ld entering write\n", tid);
+        sem_wait(&wrt); // Acquire writer semaphore
+        // Writing - pretend we wrote to a file
+        numwrites++;
+        printf("Thread %ld is writing, total writes = %d\n", tid, numwrites);
+        sem_post(&wrt); // Release writer semaphore
+    }
+}
+
+void* readercode(void* threadid) {
+    long tid = (long)threadid;
+    usleep(R0 * 1000000); // Delay reader by R0 seconds
+    while (1) {
+        usleep(R1 * 1000000); // Delay reader by R1 seconds
+        sem_wait(&mutex); // Acquire mutex
+        readcount++;
+        if (readcount == 1) {
+            sem_wait(&wrt); // First reader locks the writer
+        }
+        sem_post(&mutex); // Release mutex
+
+        // Reading - pretend we read from a file
+        numreads++;
+        printf("Thread %ld is reading, total reads = %d\n", tid, numreads);
+
+        sem_wait(&mutex); // Acquire mutex
+        readcount--;
+        if (readcount == 0) {
+            sem_post(&wrt); // Last reader releases the writer
+        }
+        sem_post(&mutex); // Release mutex
+
+        if (numreads >= ENOUGHREADS) {
+            exit(0); // Exit after enough reads
+        }
+    }
+}
+
+int main() {
+    pthread_t writer;
+    pthread_t readers[5];
+    sem_init(&wrt, 0, 1); // Initialize writer semaphore to 1
+    sem_init(&mutex, 0, 1); // Initialize mutex to 1
+
+    // Create writer thread
+    pthread_create(&writer, NULL, writercode, (void*)0);
+
+    // Create reader threads
+    for (long i = 0; i < 5; i++) {
+        pthread_create(&readers[i], NULL, readercode, (void*)i);
+    }
+
+    // Join threads (in this example, they run indefinitely)
+    pthread_join(writer, NULL);
+    for (int i = 0; i < 5; i++) {
+        pthread_join(readers[i], NULL);
+    }
+
+    // Cleanup (this won't be reached due to infinite loop)
+    sem_destroy(&wrt);
+    sem_destroy(&mutex);
+    return 0;
+}
