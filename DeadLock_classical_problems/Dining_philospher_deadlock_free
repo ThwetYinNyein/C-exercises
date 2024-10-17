@@ -1,0 +1,73 @@
+#include <stdio.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+
+#define NUM_PHIL 5
+
+sem_t Chopstick[NUM_PHIL];
+
+void *GrabLeftThenRightChopstick(void *threadid) {
+    int *tid = (int *)threadid;
+    int left = (*tid + 1) % NUM_PHIL;
+    while (1) {
+        printf("Thread %d grabbing left chopstick %d\n", *tid, left);
+        sem_wait(&Chopstick[left]);
+        printf("Thread %d grabbing right chopstick %d\n", *tid, *tid);
+        sem_wait(&Chopstick[*tid]);
+        // Simulate eating
+        printf("Thread %d is eating.\n", *tid);
+        sleep(1);
+        printf("Thread %d releasing right chopstick %d\n", *tid, *tid);
+        sem_post(&Chopstick[*tid]);
+        printf("Thread %d releasing left chopstick %d\n", *tid, left);
+        sem_post(&Chopstick[left]);
+    }
+}
+
+void *GrabRightThenLeftChopstick(void *threadid) {
+    int *tid = (int *)threadid;
+    int left = (*tid + 1) % NUM_PHIL;
+    while (1) {
+        printf("Thread %d grabbing right chopstick %d\n", *tid, *tid);
+        sem_wait(&Chopstick[*tid]);
+        printf("Thread %d grabbing left chopstick %d\n", *tid, left);
+        sem_wait(&Chopstick[left]);
+        // Simulate eating
+        printf("Thread %d is eating.\n", *tid);
+        sleep(1);
+        printf("Thread %d releasing right chopstick %d\n", *tid, *tid);
+        sem_post(&Chopstick[*tid]);
+        printf("Thread %d releasing left chopstick %d\n", *tid, left);
+        sem_post(&Chopstick[left]);
+    }
+}
+
+int main() {
+    pthread_t threads[NUM_PHIL];
+    int thread_ids[NUM_PHIL];
+
+    // Initialize semaphores
+    for (int i = 0; i < NUM_PHIL; i++) {
+        sem_init(&Chopstick[i], 0, 1);
+        thread_ids[i] = i;
+    }
+
+    // Start the first philosopher with left first, others with right first
+    pthread_create(&threads[0], NULL, GrabLeftThenRightChopstick, (void *)&thread_ids[0]);
+    for (int i = 1; i < NUM_PHIL; i++) {
+        pthread_create(&threads[i], NULL, GrabRightThenLeftChopstick, (void *)&thread_ids[i]);
+    }
+
+    // Wait for threads (will keep running)
+    for (int i = 0; i < NUM_PHIL; i++) {
+        pthread_join(threads[i], NULL);
+    }
+
+    // Cleanup (not reachable in this scenario)
+    for (int i = 0; i < NUM_PHIL; i++) {
+        sem_destroy(&Chopstick[i]);
+    }
+
+    return 0;
+}
